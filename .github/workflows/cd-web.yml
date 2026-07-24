@@ -1,0 +1,34 @@
+name: CD - Web (React)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web-react/**"
+      - "packages/shared-libraries/generated-ts/**"
+  pull_request:
+    paths:
+      - "apps/web-react/**"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web-react
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run build
+      - run: npm test -- --ci
+
+  deploy:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO: deploy apps/web-react build artifacts to your hosting target"

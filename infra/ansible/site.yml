@@ -1,0 +1,18 @@
+---
+# Main entrypoint playbook. Applies baseline hardening and docker runtime
+# setup to all hosts in the target inventory.
+#
+# Usage:
+#   ansible-playbook -i inventory/staging.ini site.yml
+
+- name: Baseline server hardening (HIPAA / GDPR)
+  hosts: all
+  become: true
+  roles:
+    - hardening
+
+- name: Prepare Docker runtime
+  hosts: all
+  become: true
+  roles:
+    - docker-runtime

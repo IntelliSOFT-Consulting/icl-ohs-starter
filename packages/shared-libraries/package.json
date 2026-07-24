@@ -1,0 +1,14 @@
+{
+  "name": "@ohs/shared-libraries",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate": "node generate.js"
+  },
+  "workspaces": [
+    "generated-ts"
+  ],
+  "dependencies": {
+    "ajv": "^8.16.0"
+  }
+}

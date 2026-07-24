@@ -1,0 +1,15 @@
+---
+# HIPAA / GDPR server hardening compliance baseline.
+# TODO: fill in real hardening steps for your target OS (CIS benchmark, etc.)
+
+- name: Ensure automatic security updates are enabled
+  ansible.builtin.debug:
+    msg: "TODO: configure unattended-upgrades / dnf-automatic"
+
+- name: Ensure firewall is enabled and default-deny
+  ansible.builtin.debug:
+    msg: "TODO: configure ufw/firewalld default deny inbound"
+
+- name: Disable password-based SSH auth
+  ansible.builtin.debug:
+    msg: "TODO: enforce PasswordAuthentication no in sshd_config"

@@ -1,0 +1,16 @@
+{
+  "name": "@ohs/workspace-root",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/web-react",
+    "apps/core-platform/gateway-node",
+    "packages/shared-libraries",
+    "packages/shared-libraries/generated-ts"
+  ],
+  "scripts": {
+    "generate": "npm run generate --workspace packages/shared-libraries",
+    "web:dev": "npm run dev --workspace apps/web-react",
+    "gateway:dev": "npm start --workspace apps/core-platform/gateway-node"
+  }
+}

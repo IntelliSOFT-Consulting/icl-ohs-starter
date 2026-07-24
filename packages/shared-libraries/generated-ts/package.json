@@ -1,0 +1,10 @@
+{
+  "name": "@ohs/generated-ts",
+  "version": "0.1.0",
+  "description": "Auto-generated TypeScript models compiled from packages/shared-libraries/schemas. Do not edit by hand.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,19 @@
+---
+# Prepares nodes with Docker runtime and network engines.
+
+- name: Install Docker
+  ansible.builtin.apt:
+    name: docker.io
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: Ensure Docker service is running
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: TODO - configure overlay network / compose plugin
+  ansible.builtin.debug:
+    msg: "Add docker-compose-plugin install + network setup here"

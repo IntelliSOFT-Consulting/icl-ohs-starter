@@ -1,0 +1,21 @@
+# Route PR reviews directly to specialized teams.
+# Replace these placeholder handles with your actual GitHub team handles
+# (Settings > Rename on instantiation).
+
+# Mobile team owns the Android/Kotlin app
+/apps/mobile-kotlin/          @org/mobile-team
+
+# Web team owns the React dashboards
+/apps/web-react/              @org/web-team
+
+# Backend team owns the gateway + FHIR service
+/apps/core-platform/          @org/backend-team
+
+# DevOps team gatekeeps all infrastructure changes
+/infra/                       @org/devops-team
+
+# Shared schemas require cross-team sign-off (add all leads here)
+/packages/shared-libraries/schemas/   @org/mobile-team @org/web-team @org/backend-team
+
+# CI/CD workflow changes require DevOps review
+/.github/workflows/           @org/devops-team

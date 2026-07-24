@@ -1,0 +1,5 @@
+---
+# Environment variables shared across all ansible-managed hosts.
+# Override per environment with group_vars/<env>.yml if needed.
+timezone: "UTC"
+docker_version: "26.1"

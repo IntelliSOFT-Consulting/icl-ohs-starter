@@ -1,0 +1,54 @@
+name: Pipeline - Schema Codegen & Publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/shared-libraries/schemas/**"
+  pull_request:
+    paths:
+      - "packages/shared-libraries/schemas/**"
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/shared-libraries
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - name: Compile JSON Schemas -> TypeScript + Kotlin
+        run: node generate.js
+      - name: Fail if generated output has uncommitted diffs (PR check)
+        if: github.event_name == 'pull_request'
+        run: git diff --exit-code generated-ts generated-kotlin
+
+  publish:
+    needs: generate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/shared-libraries
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+      - run: npm ci
+      - run: node generate.js
+      - name: Publish NPM package
+        run: npm publish --workspace generated-ts --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish Maven package
+        working-directory: packages/shared-libraries/generated-kotlin
+        run: ./gradlew publish
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}

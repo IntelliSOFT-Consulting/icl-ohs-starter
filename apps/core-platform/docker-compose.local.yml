@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  fhir-db:
+    image: postgres:16
+    env_file:
+      - ../../.env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fhir}
+      POSTGRES_USER: ${POSTGRES_USER:-fhir}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fhir_local_only}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - fhir-db-data:/var/lib/postgresql/data
+
+  service-fhir-java:
+    build: ./service-fhir-java
+    depends_on:
+      - fhir-db
+    env_file:
+      - ../../.env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://fhir-db:5432/${POSTGRES_DB:-fhir}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-fhir}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-fhir_local_only}
+    ports:
+      - "${FHIR_SERVICE_PORT:-8080}:8080"
+
+  gateway-node:
+    build: ./gateway-node
+    depends_on:
+      - service-fhir-java
+    env_file:
+      - ../../.env
+    environment:
+      FHIR_SERVICE_URL: http://service-fhir-java:8080
+    ports:
+      - "${GATEWAY_PORT:-3000}:3000"
+
+volumes:
+  fhir-db-data:

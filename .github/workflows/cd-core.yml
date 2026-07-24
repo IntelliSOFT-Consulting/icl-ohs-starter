@@ -1,0 +1,49 @@
+name: CD - Core Platform (Backend)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/core-platform/**"
+      - "packages/shared-libraries/generated-ts/**"
+  pull_request:
+    paths:
+      - "apps/core-platform/**"
+
+jobs:
+  gateway-node:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/core-platform/gateway-node
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npm test
+      - name: Build image
+        run: docker build -t gateway-node:${{ github.sha }} .
+
+  service-fhir-java:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/core-platform/service-fhir-java
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+      - run: ./gradlew test
+      - name: Build image
+        run: docker build -t service-fhir-java:${{ github.sha }} .
+
+  deploy:
+    needs: [gateway-node, service-fhir-java]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "TODO: push images to registry and trigger ECS/EKS/GKE rollout"
