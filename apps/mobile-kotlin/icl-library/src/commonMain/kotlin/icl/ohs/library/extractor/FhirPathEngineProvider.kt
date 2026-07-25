@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-  // this is necessary to avoid the plugins to be loaded multiple times
-  // in each subproject's classloader
-  alias(libs.plugins.androidApplication) apply false
-  alias(libs.plugins.androidLibrary) apply false
-  alias(libs.plugins.androidKotlinMultiplatformLibrary) apply false
-  alias(libs.plugins.composeCompiler) apply false
-  alias(libs.plugins.composeHotReload) apply false
-  alias(libs.plugins.composeMultiplatform) apply false
-  alias(libs.plugins.kotlinMultiplatform) apply false
-  id("spotless-conventions")
+package icl.ohs.library.extractor
+
+import dev.ohs.fhir.fhirpath.FhirPathEngine
+
+/**
+ * Shared, lazily-initialized R4 FHIRPath engine. [GenericStateExtractor] uses it by default.
+ *
+ * The engine holds mutable evaluation state and is therefore not safe for concurrent evaluation:
+ * callers sharing this singleton must serialize their use of it (e.g. a single-threaded
+ * dispatcher).
+ */
+object FhirPathEngineProvider {
+  val r4: FhirPathEngine by lazy { FhirPathEngine.forR4() }
 }

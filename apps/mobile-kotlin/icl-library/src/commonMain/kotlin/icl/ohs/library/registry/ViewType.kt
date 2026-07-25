@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-  // this is necessary to avoid the plugins to be loaded multiple times
-  // in each subproject's classloader
-  alias(libs.plugins.androidApplication) apply false
-  alias(libs.plugins.androidLibrary) apply false
-  alias(libs.plugins.androidKotlinMultiplatformLibrary) apply false
-  alias(libs.plugins.composeCompiler) apply false
-  alias(libs.plugins.composeHotReload) apply false
-  alias(libs.plugins.composeMultiplatform) apply false
-  alias(libs.plugins.kotlinMultiplatform) apply false
-  id("spotless-conventions")
-}
+package icl.ohs.library.registry
+
+import kotlin.jvm.JvmInline
+
+/**
+ * Opaque string label used to dispatch a renderer for a particular visual role.
+ *
+ * Paired with a data-type [kotlin.reflect.KClass] in [ViewTypeKey] to form the registry's lookup
+ * key. View-types are normally declared once per app as constants.
+ *
+ * ```
+ * val Card = ViewType("Card")
+ * val PatientHeader = ViewType("PatientHeader")
+ * ```
+ *
+ * @param value the underlying identifier; conventionally PascalCase.
+ */
+@JvmInline value class ViewType(val value: String)

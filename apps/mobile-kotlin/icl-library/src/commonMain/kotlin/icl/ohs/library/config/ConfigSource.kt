@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-  // this is necessary to avoid the plugins to be loaded multiple times
-  // in each subproject's classloader
-  alias(libs.plugins.androidApplication) apply false
-  alias(libs.plugins.androidLibrary) apply false
-  alias(libs.plugins.androidKotlinMultiplatformLibrary) apply false
-  alias(libs.plugins.composeCompiler) apply false
-  alias(libs.plugins.composeHotReload) apply false
-  alias(libs.plugins.composeMultiplatform) apply false
-  alias(libs.plugins.kotlinMultiplatform) apply false
-  id("spotless-conventions")
+package icl.ohs.library.config
+
+/**
+ * Supplies the raw config Binary documents the [ConfigStore] indexes. This is the only seam an
+ * application must implement: in production it fetches from a backend; the reference app reads
+ * bundled resources. Each returned string is the JSON body of one config Binary.
+ */
+fun interface ConfigSource {
+  suspend fun readAll(): List<String>
 }

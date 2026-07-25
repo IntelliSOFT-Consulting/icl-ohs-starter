@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-  // this is necessary to avoid the plugins to be loaded multiple times
-  // in each subproject's classloader
-  alias(libs.plugins.androidApplication) apply false
-  alias(libs.plugins.androidLibrary) apply false
-  alias(libs.plugins.androidKotlinMultiplatformLibrary) apply false
-  alias(libs.plugins.composeCompiler) apply false
-  alias(libs.plugins.composeHotReload) apply false
-  alias(libs.plugins.composeMultiplatform) apply false
-  alias(libs.plugins.kotlinMultiplatform) apply false
-  id("spotless-conventions")
+package icl.ohs.reference.feature.component.common
+
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+
+@Composable
+fun StatusChip(isActive: Boolean) {
+  val color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+  Chip(
+    label = if (isActive) "Active" else "Inactive",
+    containerColor = color.copy(alpha = 0.12f),
+    contentColor = color,
+  )
 }

@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-  // this is necessary to avoid the plugins to be loaded multiple times
-  // in each subproject's classloader
-  alias(libs.plugins.androidApplication) apply false
-  alias(libs.plugins.androidLibrary) apply false
-  alias(libs.plugins.androidKotlinMultiplatformLibrary) apply false
-  alias(libs.plugins.composeCompiler) apply false
-  alias(libs.plugins.composeHotReload) apply false
-  alias(libs.plugins.composeMultiplatform) apply false
-  alias(libs.plugins.kotlinMultiplatform) apply false
-  id("spotless-conventions")
-}
+package icl.ohs.reference
+
+import icl.ohs.library.registry.ViewRegistry
+import icl.ohs.reference.feature.group.list.registerGroupList
+import icl.ohs.reference.feature.group.profile.registerGroupProfile
+import icl.ohs.reference.feature.patient.list.registerPatientList
+import icl.ohs.reference.feature.patient.profile.registerPatientProfile
+
+fun buildAppViewRegistry(): ViewRegistry =
+  ViewRegistry().apply {
+    registerGroupList()
+    registerGroupProfile()
+    registerPatientList()
+    registerPatientProfile()
+  }
