@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-  // this is necessary to avoid the plugins to be loaded multiple times
-  // in each subproject's classloader
-  alias(libs.plugins.androidApplication) apply false
-  alias(libs.plugins.androidLibrary) apply false
-  alias(libs.plugins.androidKotlinMultiplatformLibrary) apply false
-  alias(libs.plugins.composeCompiler) apply false
-  alias(libs.plugins.composeHotReload) apply false
-  alias(libs.plugins.composeMultiplatform) apply false
-  alias(libs.plugins.kotlinMultiplatform) apply false
-  id("spotless-conventions")
+package icl.ohs.reference.data
+
+import icl.ohs.library.config.ConfigStore
+import icl.ohs.library.extractor.GenericStateExtractor
+import icl.ohs.reference.data.datasource.LocalConfigSource
+
+/**
+ * App-wide extraction wiring: the runtime [ConfigStore] (fed by bundled config Binaries) and the
+ * single [GenericStateExtractor] that turns a SearchResult into typed states for any provided
+ * config.
+ */
+object Extraction {
+
+  private val configStore: ConfigStore = ConfigStore(LocalConfigSource)
+
+  val extractor: GenericStateExtractor = GenericStateExtractor(configStore)
 }

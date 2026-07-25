@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-  // this is necessary to avoid the plugins to be loaded multiple times
-  // in each subproject's classloader
-  alias(libs.plugins.androidApplication) apply false
-  alias(libs.plugins.androidLibrary) apply false
-  alias(libs.plugins.androidKotlinMultiplatformLibrary) apply false
-  alias(libs.plugins.composeCompiler) apply false
-  alias(libs.plugins.composeHotReload) apply false
-  alias(libs.plugins.composeMultiplatform) apply false
-  alias(libs.plugins.kotlinMultiplatform) apply false
-  id("spotless-conventions")
+package icl.ohs.reference
+
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.window.ComposeViewport
+
+@OptIn(ExperimentalComposeUiApi::class)
+fun main() {
+  ComposeViewport { App() }
 }
