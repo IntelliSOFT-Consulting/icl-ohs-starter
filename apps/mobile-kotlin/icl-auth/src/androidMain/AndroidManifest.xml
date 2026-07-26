@@ -1,2 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+          Captures the host app's Context at process start (providers initialize before any
+          Activity or Application.onCreate), so the library's default, persistent
+          AuthSessionStore can reach Android's SharedPreferences without the host app having to
+          wire a Context through itself. Merged automatically into every consuming app's manifest.
+          Never queried directly.
+        -->
+        <provider
+            android:name="icl.ohs.libs.auth.platform.AppContextInitializer"
+            android:authorities="${applicationId}.iclauth.appcontextinitializer"
+            android:exported="false" />
+    </application>
+
+</manifest>

@@ -29,17 +29,17 @@ import icl.ohs.libs.auth.IclAuthConfig
 import icl.ohs.libs.auth.profile.ProfileScreen
 import icl.ohs.libs.auth.profile.ProfileViewModel
 import icl.ohs.reference.config.ApiConstants
-import icl.ohs.reference.feature.group.list.GroupListScreen
-import icl.ohs.reference.feature.group.profile.GroupProfileScreen
+import icl.ohs.reference.feature.home.ReferenceHomeScreen
 import icl.ohs.reference.feature.patient.profile.PatientProfileScreen
 
+private const val HOME_ROUTE = "home"
 private const val PROFILE_ROUTE = "profile"
-private const val GROUP_LIST_ROUTE = "groupList"
-private const val GROUP_PROFILE_ROUTE = "groupProfile"
 private const val PATIENT_PROFILE_ROUTE = "patientProfile"
-private const val GROUP_ID_ARG = "groupId"
 private const val PATIENT_ID_ARG = "patientId"
 
+// IclAuthConfig's sessionStore defaults to a persistent, platform-appropriate store (see
+// icl-auth's DefaultAuthSessionStore), so a relaunch keeps the user signed in without this app
+// having to wire anything up itself.
 private val AUTH_CONFIG =
   IclAuthConfig(
     baseAuthUrl = ApiConstants.BASE_AUTH_URL,
@@ -56,7 +56,14 @@ fun App() {
       var isLoggedIn by rememberSaveable { mutableStateOf(IclAuth.hasValidAccessToken()) }
 
       if (isLoggedIn) {
-        ReferenceAppNavigation(onLogout = { isLoggedIn = false })
+        ReferenceAppNavigation(
+          onLogout = {
+            // Clears the persisted session too, via whatever AuthSessionStore AUTH_CONFIG was
+            // built with - otherwise a "logged out" relaunch would just sign back in.
+            IclAuth.clearSession()
+            isLoggedIn = false
+          }
+        )
       } else {
         AuthNavigation(onAuthenticated = { isLoggedIn = true })
       }
@@ -68,35 +75,21 @@ fun App() {
 private fun ReferenceAppNavigation(onLogout: () -> Unit) {
   val navController = rememberNavController()
 
-  NavHost(navController = navController, startDestination = GROUP_LIST_ROUTE) {
+  NavHost(navController = navController, startDestination = HOME_ROUTE) {
+
+    // Post-login landing screen: configurable drawer + bottom nav shell.
+    composable(HOME_ROUTE) {
+      ReferenceHomeScreen(
+        onProfileClick = { navController.navigate(PROFILE_ROUTE) },
+        onPatientClick = { id -> navController.navigate("$PATIENT_PROFILE_ROUTE/$id") },
+        onLogout = { onLogout() },
+      )
+    }
 
     // New Profile Screen
     composable(PROFILE_ROUTE) {
       val viewModel = remember { ProfileViewModel() }
       ProfileScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
-    }
-
-    // Household list
-    composable(GROUP_LIST_ROUTE) {
-      GroupListScreen(
-        onProfileClick = { navController.navigate(PROFILE_ROUTE) },
-        onSettingsClick = { /* Handle settings */ },
-        onLogoutClick = { onLogout() },
-        onGroupClick = { id -> navController.navigate("$GROUP_PROFILE_ROUTE/$id") },
-      )
-    }
-
-    // Household profile (head + members)
-    composable(
-      route = "$GROUP_PROFILE_ROUTE/{$GROUP_ID_ARG}",
-      arguments = listOf(navArgument(GROUP_ID_ARG) { type = NavType.StringType }),
-    ) { back ->
-      val groupId = back.arguments?.read { getString(GROUP_ID_ARG) }.orEmpty()
-      GroupProfileScreen(
-        groupId = groupId,
-        onBack = { navController.popBackStack() },
-        onMemberClick = { id -> navController.navigate("$PATIENT_PROFILE_ROUTE/$id") },
-      )
     }
 
     // Patient IPS summary
