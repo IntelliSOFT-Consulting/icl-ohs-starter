@@ -18,11 +18,9 @@ package icl.ohs.reference.data.datasource
 import dev.ohs.fhir.model.r4.AllergyIntolerance
 import dev.ohs.fhir.model.r4.Bundle
 import dev.ohs.fhir.model.r4.Condition
-import dev.ohs.fhir.model.r4.Group
 import dev.ohs.fhir.model.r4.Immunization
 import dev.ohs.fhir.model.r4.MedicationRequest
 import dev.ohs.fhir.model.r4.Patient
-import dev.ohs.fhir.model.r4.RelatedPerson
 import dev.ohs.fhir.model.r4.Resource
 import icl.ohs.library.model.SearchResult
 import iclstarterclientapp.icl_client_reference_app.generated.resources.Res
@@ -37,8 +35,6 @@ private object SampleDataStore {
   private var initialized = false
 
   val patients = mutableMapOf<String, Patient>()
-  val groups = mutableMapOf<String, Group>()
-  val relatedPersons = mutableMapOf<String, RelatedPerson>()
   val allergies = mutableMapOf<String, MutableList<AllergyIntolerance>>()
   val medications = mutableMapOf<String, MutableList<MedicationRequest>>()
   val conditions = mutableMapOf<String, MutableList<Condition>>()
@@ -53,8 +49,6 @@ private object SampleDataStore {
       bundle.entry.forEach { entry ->
         when (val res = entry.resource) {
           is Patient -> patients[res.id ?: return@forEach] = res
-          is Group -> groups[res.id ?: return@forEach] = res
-          is RelatedPerson -> relatedPersons[res.id ?: return@forEach] = res
           is AllergyIntolerance -> {
             val ref = patientId(res.patient.reference?.value)
             ref?.let { allergies.getOrPut(it) { mutableListOf() }.add(res) }
@@ -118,41 +112,5 @@ suspend fun patientProfileSearchResult(patientId: String): SearchResult<Resource
     resource = patient,
     included = mapOf("patient" to listOf(patient)),
     revIncluded = revIncluded.ifEmpty { null },
-  )
-}
-
-/**
- * Group list: root = Group only. Member count is derived from `Group.member.size` on the resource
- * itself — no additional includes needed.
- */
-suspend fun groupListSearchResults(): List<SearchResult<Resource>> {
-  SampleDataStore.ensureInit()
-  return SampleDataStore.groups.values.map { group -> SearchResult(resource = group) }
-}
-
-/**
- * Group profile: root = Group, member Patients in included, RelatedPersons in revIncluded. Mirrors
- * a real `GET /Group/{id}?_include=Group:member&_revinclude=RelatedPerson:patient` response. Both
- * GroupHeaderExtractor and GroupMemberExtractor run against this single result.
- */
-suspend fun groupProfileSearchResult(groupId: String): SearchResult<Resource>? {
-  SampleDataStore.ensureInit()
-  val group = SampleDataStore.groups[groupId] ?: return null
-  val memberPatients =
-    group.member.mapNotNull { member ->
-      member.entity.reference?.value?.removePrefix("Patient/")?.let { SampleDataStore.patients[it] }
-    }
-  val relatedPersons =
-    memberPatients.mapNotNull { patient ->
-      SampleDataStore.relatedPersons.values.firstOrNull { rp ->
-        rp.patient.reference?.value == "Patient/${patient.id}"
-      }
-    }
-  return SearchResult(
-    resource = group,
-    included = mapOf("member" to memberPatients),
-    revIncluded =
-      if (relatedPersons.isNotEmpty()) mapOf(("RelatedPerson" to "patient") to relatedPersons)
-      else null,
   )
 }

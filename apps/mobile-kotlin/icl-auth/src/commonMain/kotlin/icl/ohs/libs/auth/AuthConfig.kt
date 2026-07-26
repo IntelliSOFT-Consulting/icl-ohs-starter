@@ -16,10 +16,10 @@
 package icl.ohs.libs.auth
 
 import icl.ohs.libs.auth.model.AuthSessionStore
-import icl.ohs.libs.auth.model.InMemoryAuthSessionStore
 import icl.ohs.libs.auth.model.LoginMessages
 import icl.ohs.libs.auth.model.ResetPasswordMessages
 import icl.ohs.libs.auth.model.SetNewPasswordMessages
+import icl.ohs.libs.auth.platform.createDefaultAuthSessionStore
 
 /**
  * Public configuration surface of the auth library. These types stay in the top-level
@@ -34,7 +34,9 @@ data class IclAuthConfig(
   val requestTimeoutMillis: Long = 15_000,
   val responseMessageKeys: List<String> = listOf("message", "error", "detail"),
   val messages: LoginMessages = LoginMessages(),
-  val sessionStore: AuthSessionStore = InMemoryAuthSessionStore,
+  // Persistent where the platform supports it (see createDefaultAuthSessionStore); pass your own
+  // AuthSessionStore here to use Keychain, encrypted prefs, a backend-synced store, etc. instead.
+  val sessionStore: AuthSessionStore = createDefaultAuthSessionStore(),
 )
 
 data class LoginScreenConfig(

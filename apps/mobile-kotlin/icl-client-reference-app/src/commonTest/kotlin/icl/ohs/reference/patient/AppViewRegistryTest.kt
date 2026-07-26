@@ -29,13 +29,6 @@ class AppViewRegistryTest {
   fun allRequiredRenderersAreRegistered() {
     val registry = buildAppViewRegistry()
 
-    // Group list
-    registry.componentRenderer<GroupListState>(ViewTypeCS.GroupCard)
-    registry.layoutRenderer<GroupListState>(VerticalListRenderer.VIEW_TYPE)
-
-    // Group profile
-    registry.componentRenderer<GroupMemberState>(ViewTypeCS.MemberItem)
-
     // Patient list — component + every layout
     registry.componentRenderer<PatientSummaryState>(ViewTypeCS.PatientCard)
     registry.layoutRenderer<PatientSummaryState>(VerticalListRenderer.VIEW_TYPE)

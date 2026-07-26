@@ -36,7 +36,7 @@ import icl.ohs.mobile.generated.viewtype.ViewTypeCS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PatientListScreen(onPatientClick: (String) -> Unit) {
+fun PatientListScreen(onPatientClick: (String) -> Unit, showTopBar: Boolean = true) {
   val viewModel: PatientListViewModel = viewModel { PatientListViewModel() }
   val patients by viewModel.patients.collectAsStateWithLifecycle()
 
@@ -54,15 +54,17 @@ fun PatientListScreen(onPatientClick: (String) -> Unit) {
   ) {
     component(ViewTypeCS.PatientCard)
     layout(VerticalListRenderer.VIEW_TYPE)
-    topBar {
-      TopAppBar(
-        title = { Text("Patients") },
-        colors =
-          TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            titleContentColor = MaterialTheme.colorScheme.onPrimary,
-          ),
-      )
+    if (showTopBar) {
+      topBar {
+        TopAppBar(
+          title = { Text("Patients") },
+          colors =
+            TopAppBarDefaults.topAppBarColors(
+              containerColor = MaterialTheme.colorScheme.primary,
+              titleContentColor = MaterialTheme.colorScheme.onPrimary,
+            ),
+        )
+      }
     }
     emptyState { Text("No patients") }
   }

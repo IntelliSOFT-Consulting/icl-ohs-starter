@@ -22,15 +22,10 @@ package icl.ohs.reference.config
  * Screens and screen configs (see `App.kt`, `AuthNavigation.kt`) should reference these constants
  * instead of hardcoding paths, so there is exactly one place to update when the backend contract
  * changes.
- *
- * [BASE_AUTH_URL] is intentionally not a literal in this file - it is not committed to source at
- * all. It is read from `local.properties` (`apiBaseUrl`) or the `API_BASE_URL` environment variable
- * by the `:icl-client-reference-app` Gradle build, which generates [LocalConfig]. See the repo
- * README ("Configure the API base URL") for setup instructions.
  */
 object ApiConstants {
-  /** Base URL for the provider auth API. Configured outside of source - see class doc above. */
-  val BASE_AUTH_URL: String = ""
+  /** Base URL for the provider auth API. Update this when pointing at a different backend. */
+  const val BASE_AUTH_URL: String = "https://dsrkeycloak.intellisoftkenya.com/auth"
 
   // Provider auth endpoints, resolved against BASE_AUTH_URL.
   const val LOGIN_ENDPOINT: String = "/provider/login"

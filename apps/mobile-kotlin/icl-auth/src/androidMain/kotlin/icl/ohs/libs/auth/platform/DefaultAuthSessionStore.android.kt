@@ -13,14 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package icl.ohs.reference
+package icl.ohs.libs.auth.platform
 
-import icl.ohs.library.registry.ViewRegistry
-import icl.ohs.reference.feature.patient.list.registerPatientList
-import icl.ohs.reference.feature.patient.profile.registerPatientProfile
+import icl.ohs.libs.auth.model.AuthSessionStore
 
-fun buildAppViewRegistry(): ViewRegistry =
-  ViewRegistry().apply {
-    registerPatientList()
-    registerPatientProfile()
-  }
+actual fun createDefaultAuthSessionStore(): AuthSessionStore =
+  SharedPreferencesAuthSessionStore(AppContextHolder.appContext)
