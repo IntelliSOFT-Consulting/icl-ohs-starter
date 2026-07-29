@@ -70,7 +70,7 @@ fun ReferenceHomeScreen(
   onProfileClick: () -> Unit,
   onPatientClick: (String) -> Unit,
   onLogout: () -> Unit,
-  config: ReferenceHomeConfig = ReferenceHomeConfig(layoutMode = HomeLayoutMode.DrawerOnly),
+  config: ReferenceHomeConfig = ReferenceHomeConfig(layoutMode = HomeLayoutMode.Both),
   onCustomItemSelected: (String) -> Unit = {},
 ) {
   var selectedTab by rememberSaveable { mutableStateOf(ReferenceHomeItemIds.HOME) }
@@ -127,6 +127,7 @@ fun ReferenceHomeScreen(
     },
     userLabel = providerUser?.fullNames.orEmpty(),
     userSubLabel = providerUser?.role.orEmpty(),
+    onHeaderClick = onProfileClick,
     topBarActions = {
       TopBarActions(
         notifications = config.notifications,

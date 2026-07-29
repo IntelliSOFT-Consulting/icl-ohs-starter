@@ -34,6 +34,9 @@ internal object AppContextHolder {
       appContext = context
     }
   }
+
+  /** Whether [attach] has run yet - guards uses of [appContext] before the provider initializes. */
+  fun isAttached(): Boolean = ::appContext.isInitialized
 }
 
 /**

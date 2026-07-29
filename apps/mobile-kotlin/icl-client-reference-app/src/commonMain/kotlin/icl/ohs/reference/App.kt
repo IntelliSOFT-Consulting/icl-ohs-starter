@@ -26,6 +26,7 @@ import androidx.savedstate.read
 import icl.ohs.library.registry.LocalViewRegistry
 import icl.ohs.libs.auth.IclAuth
 import icl.ohs.libs.auth.IclAuthConfig
+import icl.ohs.libs.auth.profile.ProfileRepository
 import icl.ohs.libs.auth.profile.ProfileScreen
 import icl.ohs.libs.auth.profile.ProfileViewModel
 import icl.ohs.reference.config.ApiConstants
@@ -61,6 +62,11 @@ fun App() {
             // Clears the persisted session too, via whatever AuthSessionStore AUTH_CONFIG was
             // built with - otherwise a "logged out" relaunch would just sign back in.
             IclAuth.clearSession()
+            // ProfileRepository caches the last-derived ProfileUiState in memory for as long as
+            // the process lives, independent of IclAuth's own session/profile state - without
+            // this, a different user signing in during the same app session would briefly see
+            // the previous user's cached profile until the next manual refresh.
+            ProfileRepository.clearProfile()
             isLoggedIn = false
           }
         )
