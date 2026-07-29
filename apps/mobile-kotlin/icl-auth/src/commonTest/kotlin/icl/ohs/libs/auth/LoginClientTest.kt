@@ -19,6 +19,8 @@ import icl.ohs.libs.auth.model.AuthSession
 import icl.ohs.libs.auth.model.AuthSessionStore
 import icl.ohs.libs.auth.model.InMemoryAuthSessionStore
 import icl.ohs.libs.auth.model.LoginTokenResponse
+import icl.ohs.libs.auth.model.ProviderProfile
+import icl.ohs.libs.auth.model.ProviderUser
 import icl.ohs.libs.auth.network.LoginAttemptResult
 import icl.ohs.libs.auth.network.LoginService
 import icl.ohs.libs.auth.network.buildLoginRequestBody
@@ -86,7 +88,11 @@ class LoginClientTest {
   @Test
   fun login_returnsSuccessForSuccessfulResponses() = runTest {
     IclAuth.clear()
-    val sessionStore = InMemoryAuthSessionStore.also { it.session = null }
+    val sessionStore =
+      InMemoryAuthSessionStore.also {
+        it.session = null
+        it.providerProfileJson = null
+      }
     val config =
       resolveLoginConfig(
         screenConfig = LoginScreenConfig(endpoint = "/login"),
@@ -155,7 +161,11 @@ class LoginClientTest {
   @Test
   fun login_skipsProviderProfileFetchForFirstTimeUsers() = runTest {
     IclAuth.clear()
-    val sessionStore = InMemoryAuthSessionStore.also { it.session = null }
+    val sessionStore =
+      InMemoryAuthSessionStore.also {
+        it.session = null
+        it.providerProfileJson = null
+      }
     val config =
       resolveLoginConfig(
         screenConfig = LoginScreenConfig(endpoint = "/login"),
@@ -303,7 +313,11 @@ class LoginClientTest {
   @Test
   fun login_returnsFailureWhenProviderProfileRequestFails() = runTest {
     IclAuth.clear()
-    val sessionStore = InMemoryAuthSessionStore.also { it.session = null }
+    val sessionStore =
+      InMemoryAuthSessionStore.also {
+        it.session = null
+        it.providerProfileJson = null
+      }
     val config =
       resolveLoginConfig(
         screenConfig = LoginScreenConfig(endpoint = "/login"),
@@ -349,6 +363,50 @@ class LoginClientTest {
     } finally {
       client.close()
     }
+  }
+
+  @Test
+  fun initialize_restoresProviderProfileFromPersistedJson() {
+    val sessionStore =
+      InMemoryAuthSessionStore.also {
+        it.session = null
+        it.providerProfileJson = null
+      }
+    IclAuth.clear()
+    // Simulates a cold app launch: nothing fetched this process, but a previous session already
+    // persisted a profile to the store (e.g. via SharedPreferencesAuthSessionStore on Android).
+    sessionStore.providerProfileJson =
+      """{"status":"success","user":{"firstName":"Ana","lastName":"Wanjiru","role":"NURSE"}}"""
+
+    IclAuth.initialize(
+      IclAuthConfig(baseAuthUrl = "https://auth.example.com", sessionStore = sessionStore)
+    )
+
+    assertTrue(IclAuth.hasProviderProfile)
+    assertEquals("Ana", IclAuth.currentProviderUser()?.firstName)
+    assertEquals("NURSE", IclAuth.currentProviderUser()?.role)
+  }
+
+  @Test
+  fun updateProviderProfile_persistsToAndClearsFromSessionStore() {
+    val sessionStore =
+      InMemoryAuthSessionStore.also {
+        it.session = null
+        it.providerProfileJson = null
+      }
+    IclAuth.clear()
+    IclAuth.initialize(
+      IclAuthConfig(baseAuthUrl = "https://auth.example.com", sessionStore = sessionStore)
+    )
+
+    IclAuth.updateProviderProfile(
+      ProviderProfile(status = "success", user = ProviderUser(firstName = "Ana"))
+    )
+    val persisted = assertNotNull(sessionStore.providerProfileJson)
+    assertTrue(persisted.contains("Ana"))
+
+    IclAuth.updateProviderProfile(null)
+    assertNull(sessionStore.providerProfileJson)
   }
 
   @Test

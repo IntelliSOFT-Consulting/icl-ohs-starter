@@ -21,14 +21,18 @@ import icl.ohs.libs.auth.model.AuthSessionStore
 import kotlin.time.Instant
 
 /**
- * Persists the [AuthSession] to a private Android [android.content.SharedPreferences] file, field
- * by field, so relaunching the host app finds the user still signed in instead of asking them to
- * log in again every time - the alternative, [icl.ohs.libs.auth.model.InMemoryAuthSessionStore],
- * only lives as long as the process does.
+ * Persists the [AuthSession] (field by field) and the signed-in provider's profile (as one JSON
+ * blob) to a private Android [android.content.SharedPreferences] file, so relaunching the host app
+ * finds the user still signed in - and their profile still populated - instead of asking them to
+ * log in again, or showing a blank profile/drawer until a manual refresh. The alternative,
+ * [icl.ohs.libs.auth.model.InMemoryAuthSessionStore], only lives as long as the process does.
  *
- * Fields are written individually rather than as one JSON blob because [AuthSession] isn't
+ * [AuthSession]'s fields are written individually rather than as one JSON blob because it isn't
  * `@Serializable`; it's a plain domain model with no serialization dependency of its own, and this
- * avoids adding one just to support this one storage strategy.
+ * avoids adding one just to support this one storage strategy. The provider profile, in contrast,
+ * is stored as a single blob via [icl.ohs.libs.auth.network.toJsonString]/
+ * [icl.ohs.libs.auth.network.parseProviderProfile] - it has nested objects and a list, so hand
+ * flattening it field by field like the session would be considerably more error-prone.
  */
 internal class SharedPreferencesAuthSessionStore(context: Context) : AuthSessionStore {
 
@@ -38,10 +42,23 @@ internal class SharedPreferencesAuthSessionStore(context: Context) : AuthSession
     get() = prefs.readSession()
     set(value) {
       if (value == null) {
+        // A cleared session invalidates any persisted profile too - clear it in the same edit so
+        // the two never disagree (e.g. a stale profile surviving a logged-out session).
         prefs.edit().clear().apply()
       } else {
         prefs.edit().writeSession(value).apply()
       }
+    }
+
+  // Stored as a single JSON blob (see ProviderProfile.toJsonString/parseProviderProfile) rather
+  // than field by field like `session` - the profile has nested objects and a list, which would
+  // make hand-rolled flattening far more error-prone for little benefit.
+  override var providerProfileJson: String?
+    get() = prefs.getString(KEY_PROVIDER_PROFILE_JSON, null)
+    set(value) {
+      val editor = prefs.edit()
+      editor.putOrRemoveString(KEY_PROVIDER_PROFILE_JSON, value)
+      editor.apply()
     }
 
   private fun android.content.SharedPreferences.readSession(): AuthSession? {
@@ -114,5 +131,6 @@ internal class SharedPreferencesAuthSessionStore(context: Context) : AuthSession
     const val KEY_SCOPE = "scope"
     const val KEY_FIRST_LOGIN = "first_login"
     const val KEY_STATUS = "status"
+    const val KEY_PROVIDER_PROFILE_JSON = "provider_profile_json"
   }
 }

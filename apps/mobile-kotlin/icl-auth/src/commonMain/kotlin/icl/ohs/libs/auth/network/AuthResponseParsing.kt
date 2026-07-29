@@ -23,12 +23,16 @@ import icl.ohs.libs.auth.model.ProviderUser
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 
 /** JSON decoding of auth API responses into domain models, and failure-message resolution. */
 internal fun parseLoginTokenResponse(responseBody: String): LoginTokenResponse? {
@@ -55,6 +59,50 @@ internal fun parseProviderProfile(responseBody: String): ProviderProfile? {
     status = json.rawStringValue("status"),
     user = json.objectValue("user")?.toProviderUser(),
   )
+}
+
+/**
+ * Encodes a [ProviderProfile] back to the same JSON shape [parseProviderProfile] reads, so it can
+ * be handed to [icl.ohs.libs.auth.model.AuthSessionStore.providerProfileJson] for persistence and
+ * restored later with [parseProviderProfile] - keeping the two functions symmetric instead of
+ * introducing a second, `@Serializable`-based encoding of the same models.
+ */
+internal fun ProviderProfile.toJsonString(): String =
+  buildJsonObject {
+      status?.let { put("status", it) }
+      user?.let { put("user", it.toJsonObject()) }
+    }
+    .toString()
+
+internal fun ProviderUser.toJsonObject(): JsonObject = buildJsonObject {
+  firstName?.let { put("firstName", it) }
+  lastName?.let { put("lastName", it) }
+  fhirPractitionerId?.let { put("fhirPractitionerId", it) }
+  practitionerRole?.let { put("practitionerRole", it) }
+  role?.let { put("role", it) }
+  status?.let { put("status", it) }
+  id?.let { put("id", it) }
+  idNumber?.let { put("idNumber", it) }
+  fullNames?.let { put("fullNames", it) }
+  phone?.let { put("phone", it) }
+  email?.let { put("email", it) }
+  locationInfo?.let { put("locationInfo", it.toJsonObject()) }
+  communityHealthUnits?.let { units ->
+    put("communityHealthUnits", JsonArray(units.map { JsonPrimitive(it) }))
+  }
+}
+
+internal fun ProviderLocationInfo.toJsonObject(): JsonObject = buildJsonObject {
+  facility?.let { put("facility", it) }
+  facilityName?.let { put("facilityName", it) }
+  ward?.let { put("ward", it) }
+  wardName?.let { put("wardName", it) }
+  subCounty?.let { put("subCounty", it) }
+  subCountyName?.let { put("subCountyName", it) }
+  county?.let { put("county", it) }
+  countyName?.let { put("countyName", it) }
+  country?.let { put("country", it) }
+  countryName?.let { put("countryName", it) }
 }
 
 internal fun LoginTokenResponse.toAuthSession(issuedAt: Instant): AuthSession? {

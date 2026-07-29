@@ -23,7 +23,9 @@ import icl.ohs.libs.auth.network.LoginService
 import icl.ohs.libs.auth.network.ProviderProfileRequestResult
 import icl.ohs.libs.auth.network.buildLoginHttpClient
 import icl.ohs.libs.auth.network.fetchProviderProfile
+import icl.ohs.libs.auth.network.parseProviderProfile
 import icl.ohs.libs.auth.network.resolveLoginConfig
+import icl.ohs.libs.auth.network.toJsonString
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -45,10 +47,16 @@ object IclAuth {
 
   fun initialize(config: IclAuthConfig) {
     configuration = config
+    // Restore whatever provider profile was last persisted (see AuthSessionStore.
+    // providerProfileJson) so a cold launch that resumes an existing session - no login network
+    // call this process - still has profile data to show immediately, instead of the drawer/
+    // profile screen staying blank until a manual refresh.
+    providerProfile = config.sessionStore.providerProfileJson?.let(::parseProviderProfile)
   }
 
   fun clearSession() {
     sessionStore?.session = null
+    sessionStore?.providerProfileJson = null
     providerProfile = null
   }
 
@@ -123,5 +131,6 @@ object IclAuth {
 
   internal fun updateProviderProfile(providerProfile: ProviderProfile?) {
     this.providerProfile = providerProfile
+    sessionStore?.providerProfileJson = providerProfile?.toJsonString()
   }
 }
