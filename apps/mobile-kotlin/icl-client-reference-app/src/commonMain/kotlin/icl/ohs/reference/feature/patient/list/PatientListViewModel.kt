@@ -29,6 +29,11 @@ class PatientListViewModel : ViewModel() {
   val patients: StateFlow<List<PatientSummaryState>?> = _patients.asStateFlow()
 
   init {
-    viewModelScope.launch { _patients.value = PatientRepository.getPatients() }
+    // Re-fetches on every engine write, not just once at screen load - the startup sample-data
+    // seed finishes some time after launch, and this is what makes it show up without the user
+    // having to leave the screen and come back.
+    viewModelScope.launch {
+      PatientRepository.revision().collect { _patients.value = PatientRepository.getPatients() }
+    }
   }
 }

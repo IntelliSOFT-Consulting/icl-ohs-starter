@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package icl.ohs.reference
+package icl.ohs.reference.data.repository
 
-import androidx.compose.ui.window.ComposeUIViewController
-import dev.ohs.fhir.engine.FhirEngineConfiguration
-import dev.ohs.fhir.engine.FhirEngineProvider
-import icl.ohs.reference.data.repository.FhirEngineRepository
-import icl.ohs.reference.data.repository.PatientRepository
+import kotlinx.serialization.json.Json
 
-fun MainViewController() = run {
-  FhirEngineProvider.init(FhirEngineConfiguration())
-  PatientRepository.initialize(FhirEngineRepository(FhirEngineProvider.getInstance()))
-  PatientRepository.seedQuestionnaireAsync()
-  PatientRepository.seedSamplePatientsAsync()
-  ComposeUIViewController { App() }
+/**
+ * Single shared [Json] instance/configuration for encoding and decoding FHIR resources - used by
+ * [FhirEngineRepository] for reference rewriting and by test fixtures for decoding literal FHIR
+ * JSON into typed [dev.ohs.fhir.model.r4.Resource]s.
+ */
+internal object FhirJson {
+  val instance: Json = Json {
+    prettyPrint = true
+    explicitNulls = false
+    encodeDefaults = false
+    ignoreUnknownKeys = true
+  }
 }

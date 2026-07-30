@@ -25,11 +25,26 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.runComposeUiTest
 import icl.ohs.library.registry.LocalViewRegistry
 import icl.ohs.reference.buildAppViewRegistry
+import icl.ohs.reference.data.repository.InMemoryFhirRepository
+import icl.ohs.reference.data.repository.PatientRepository
+import icl.ohs.reference.data.repository.SamplePatientFixture
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalTestApi::class)
 class PatientProfileScreenTest {
+
+  @BeforeTest
+  fun setUp() = runTest {
+    // PatientRepository no longer auto-seeds sample data (see FhirEngineRepository) - seed the
+    // fixture patient and clinical resources this screen expects to find, via an in-memory
+    // FhirRepository.
+    val repository = InMemoryFhirRepository()
+    SamplePatientFixture.resources.forEach { repository.upsert(it) }
+    PatientRepository.initialize(repository)
+  }
 
   @Test
   fun knownPatient_rendersNameAndClinicalSections() = runComposeUiTest {

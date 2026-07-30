@@ -41,10 +41,17 @@ kotlin {
 
   jvm()
 
-  js {
-    browser()
-    binaries.executable()
-  }
+  // Kotlin/JS (the legacy, non-Wasm browser target) is disabled for now: dev.ohs.fhir:fhir-engine
+  // doesn't currently publish a js artifact (only wasmJs), so commonMain can't resolve it for all
+  // target platforms with js enabled. The upstream player-reference app hit the same issue -
+  // see https://github.com/ohs-foundation/player-reference/pull/63 ("Temporarily disable js
+  // target pending fhir-engine js support"). Re-enable once fhir-engine publishes a js artifact.
+  // wasmJs below is unaffected and remains the browser target in the meantime.
+  //
+  // js {
+  //   browser()
+  //   binaries.executable()
+  // }
 
   @OptIn(ExperimentalWasmDsl::class)
   wasmJs {
@@ -74,6 +81,7 @@ kotlin {
       implementation(libs.kotlinx.serialization.json)
       implementation(libs.kotlinx.datetime)
       implementation(libs.navigation.compose)
+      implementation(libs.ohs.fhir.engine)
       implementation(libs.ohs.fhir.model)
       implementation(libs.ohs.fhir.path)
     }
@@ -213,30 +221,19 @@ val composePackageVersion: String =
 // GitHub Actions) so the CI build stays green; local development still runs these so contributors
 // can reproduce and fix the underlying failures.
 //
-//   * Kotlin/JS IR backend crashes lowering the generated sealed-interface dispatch tables in
-//     dev.ohs.fhir:fhir-path (StackOverflow in KotlinLikeDumper). The main JS compile is fine; only
-//     the JS *test* executable lowering trips because the test source set exercises those types.
-//     Mirrors the same skip in :ohs-player-library.
-//
 //   * Android/JVM host unit tests need a host Android framework (NoClassDefFoundError).
 //
 // TODO: Adopt Compose Multiplatform UI tests (runComposeUiTest) for commonTest so the host tests
 //  run without the Android framework. JVM and iOS execution cover the same logic in the meantime.
+//
+// (Kotlin/JS itself is currently disabled entirely above, pending dev.ohs.fhir:fhir-engine
+// publishing a js artifact - see the `kotlin { }` block - so there's no jsBrowserTest/js compile
+// task to skip here anymore.)
 val isCi = providers.environmentVariable("CI").map(String::toBoolean).getOrElse(false)
 
 if (isCi) {
   tasks
-    .matching {
-      it.name in
-        setOf(
-          "testDebugUnitTest",
-          "testReleaseUnitTest",
-          "compileTestDevelopmentExecutableKotlinJs",
-          "compileTestProductionExecutableKotlinJs",
-          "jsBrowserTest",
-          "wasmJsBrowserTest",
-        )
-    }
+    .matching { it.name in setOf("testDebugUnitTest", "testReleaseUnitTest", "wasmJsBrowserTest") }
     .configureEach { enabled = false }
 }
 

@@ -1,0 +1,29 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "add-clinical-data",
+  "status": "active",
+  "title": "Add Clinical Data",
+  "item": [
+    {
+      "linkId": "category",
+      "text": "What would you like to record?",
+      "type": "choice",
+      "answerOption": [
+        {"valueString": "Allergy"},
+        {"valueString": "Medication"},
+        {"valueString": "Condition"},
+        {"valueString": "Immunization"}
+      ]
+    },
+    {
+      "linkId": "display",
+      "text": "Description",
+      "type": "string"
+    },
+    {
+      "linkId": "date",
+      "text": "Date (optional, YYYY-MM-DD)",
+      "type": "date"
+    }
+  ]
+}
