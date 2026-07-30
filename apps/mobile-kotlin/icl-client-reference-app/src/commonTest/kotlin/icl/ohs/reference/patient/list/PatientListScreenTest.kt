@@ -24,11 +24,25 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import icl.ohs.library.registry.LocalViewRegistry
 import icl.ohs.reference.buildAppViewRegistry
+import icl.ohs.reference.data.repository.InMemoryFhirRepository
+import icl.ohs.reference.data.repository.PatientRepository
+import icl.ohs.reference.data.repository.SamplePatientFixture
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalTestApi::class)
 class PatientListScreenTest {
+
+  @BeforeTest
+  fun setUp() = runTest {
+    // PatientRepository no longer auto-seeds sample data (see FhirEngineRepository) - seed the
+    // fixture patient this screen expects to find directly, via an in-memory FhirRepository.
+    val repository = InMemoryFhirRepository()
+    SamplePatientFixture.resources.forEach { repository.upsert(it) }
+    PatientRepository.initialize(repository)
+  }
 
   @Test
   fun tappingPatient_invokesOnPatientClickWithMatchingId() = runComposeUiTest {

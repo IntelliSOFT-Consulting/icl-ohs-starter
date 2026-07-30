@@ -15,22 +15,24 @@
  */
 package icl.ohs.reference
 
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
+import android.app.Application
 import dev.ohs.fhir.engine.FhirEngineConfiguration
 import dev.ohs.fhir.engine.FhirEngineProvider
 import icl.ohs.reference.data.repository.FhirEngineRepository
 import icl.ohs.reference.data.repository.PatientRepository
-import java.io.File
 
-fun main() = application {
-  // Desktop has no natural app-private storage location the way Android/iOS do, so the FHIR
-  // Engine database lives under the user's home directory instead.
-  val userHome = System.getProperty("user.home").orEmpty().ifBlank { "." }
-  val storageDirectory = File(userHome, ".icl-ohs-reference-app").absolutePath
-  FhirEngineProvider.init(FhirEngineConfiguration(storageDirectory = storageDirectory))
-  PatientRepository.initialize(FhirEngineRepository(FhirEngineProvider.getInstance()))
-  PatientRepository.seedQuestionnaireAsync()
-  PatientRepository.seedSamplePatientsAsync()
-  Window(onCloseRequest = ::exitApplication, title = "OHS Player Reference App") { App() }
+/**
+ * Initializes the on-device FHIR Engine database and wires it into [PatientRepository] once, at
+ * process start - before [MainActivity] (or any Activity) exists - instead of in `onCreate` of the
+ * first Activity, so it isn't accidentally re-run on an Activity recreation (e.g. rotation).
+ */
+class ReferenceApplication : Application() {
+  override fun onCreate() {
+    super.onCreate()
+    FhirEngineProvider.init(FhirEngineConfiguration(), applicationContext)
+    val fhirEngine = FhirEngineProvider.getInstance(applicationContext)
+    PatientRepository.initialize(FhirEngineRepository(fhirEngine))
+    PatientRepository.seedQuestionnaireAsync()
+    PatientRepository.seedSamplePatientsAsync()
+  }
 }

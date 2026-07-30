@@ -24,10 +24,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,7 +39,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -62,6 +66,8 @@ import icl.ohs.mobile.generated.viewtype.ViewTypeCS
 fun PatientProfileScreen(patientId: String, onBack: () -> Unit) {
   val viewModel = viewModel(key = patientId) { IpsPatientProfileViewModel(patientId) }
   val state by viewModel.uiState.collectAsStateWithLifecycle()
+  val addClinicalDataForm by viewModel.addClinicalDataForm.collectAsStateWithLifecycle()
+  var showAddClinicalData by remember { mutableStateOf(false) }
   val registry = LocalViewRegistry.current
 
   val headerRenderer =
@@ -128,7 +134,16 @@ fun PatientProfileScreen(patientId: String, onBack: () -> Unit) {
             titleContentColor = MaterialTheme.colorScheme.onPrimary,
           ),
       )
-    }
+    },
+    floatingActionButton = {
+      if (addClinicalDataForm != null) {
+        ExtendedFloatingActionButton(
+          text = { Text("Add Clinical Data") },
+          icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+          onClick = { showAddClinicalData = true },
+        )
+      }
+    },
   ) { padding ->
     val s = state
     if (s == null) {
@@ -212,5 +227,17 @@ fun PatientProfileScreen(patientId: String, onBack: () -> Unit) {
         }
       }
     }
+  }
+
+  val form = addClinicalDataForm
+  if (showAddClinicalData && form != null) {
+    AddClinicalDataDialog(
+      form = form,
+      onDismiss = { showAddClinicalData = false },
+      onSubmit = { category, display, date ->
+        viewModel.addClinicalData(category, display, date)
+        showAddClinicalData = false
+      },
+    )
   }
 }

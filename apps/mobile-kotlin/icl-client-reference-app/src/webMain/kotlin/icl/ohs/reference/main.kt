@@ -17,8 +17,16 @@ package icl.ohs.reference
 
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
+import dev.ohs.fhir.engine.FhirEngineConfiguration
+import dev.ohs.fhir.engine.FhirEngineProvider
+import icl.ohs.reference.data.repository.FhirEngineRepository
+import icl.ohs.reference.data.repository.PatientRepository
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
+  FhirEngineProvider.init(FhirEngineConfiguration())
+  PatientRepository.initialize(FhirEngineRepository(FhirEngineProvider.getInstance()))
+  PatientRepository.seedQuestionnaireAsync()
+  PatientRepository.seedSamplePatientsAsync()
   ComposeViewport { App() }
 }
